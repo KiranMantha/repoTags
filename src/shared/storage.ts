@@ -44,11 +44,12 @@ export async function setRepoCategories(
   repoId: string,
   repoName: string,
   url: string,
+  description: string,
   categoryIds: string[]
 ): Promise<StorageSchema> {
   const data = await loadStorage();
   const idx = data.repos.findIndex((r) => r.repoId === repoId);
-  const entry: RepoEntry = { repoId, repoName, url, categoryIds };
+  const entry: RepoEntry = { repoId, repoName, url, description, categoryIds };
   if (idx >= 0) data.repos[idx] = entry;
   else data.repos.push(entry);
   await saveStorage(data);

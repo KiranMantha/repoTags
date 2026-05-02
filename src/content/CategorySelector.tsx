@@ -1,22 +1,271 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { generateId, loadStorage, onStorageChange, setRepoCategories, upsertCategory } from '../shared/storage';
 import type { Category, StorageSchema } from '../shared/types';
 import { CATEGORY_COLORS } from '../shared/types';
+import { loadStorage, onStorageChange, upsertCategory, setRepoCategories, generateId } from '../shared/storage';
 
 interface Props {
   repoId: string;
   repoName: string;
   url: string;
+  description: string;
 }
 
-export function CategorySelector({ repoId, repoName, url }: Props) {
-  const [open, setOpen] = useState(false);
+// CSS injected once into the page
+const STYLES = `
+#github-grouper-root details[role="listbox"] {
+  position: relative;
+  display: inline-block;
+  font-size: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+#github-grouper-root details[role="listbox"] > summary {
+  list-style: none;
+  position: relative;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 12px;
+  height: 28px;
+  box-sizing: border-box;
+  line-height: 1;
+  color: #c9d1d9;
+  background: #21262d;
+  border: 1px solid rgba(240,246,252,0.1);
+  border-radius: 6px;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+#github-grouper-root details[role="listbox"] > summary::-webkit-details-marker {
+  display: none;
+}
+
+#github-grouper-root details[role="listbox"] > summary:hover {
+  background: #30363d;
+}
+
+#github-grouper-root details[role="listbox"] > summary .gg-badge {
+  background: #6366f1;
+  border-radius: 10px;
+  padding: 0 5px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 16px;
+}
+
+#github-grouper-root details[role="listbox"] > summary::after {
+  content: '';
+  height: 16px;
+  width: 16px;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%23c9d1d9' d='M4.427 7.427l3.396 3.396a.25.25 0 0 0 .354 0l3.396-3.396A.25.25 0 0 0 11.396 7H4.604a.25.25 0 0 0-.177.427z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  flex-shrink: 0;
+  transition: transform 0.15s;
+}
+
+#github-grouper-root details[role="listbox"][open] > summary {
+  background: #30363d;
+}
+
+#github-grouper-root details[role="listbox"][open] > summary::before {
+  position: fixed;
+  top: 0; right: 0; bottom: 0; left: 0;
+  z-index: 9998;
+  display: block;
+  cursor: default;
+  content: ' ';
+  background: transparent;
+}
+
+#github-grouper-root details[role="listbox"][open] > summary::after {
+  transform: rotate(180deg);
+}
+
+#github-grouper-root details[role="listbox"][open] > summary + .gg-dropdown {
+  display: block;
+}
+
+#github-grouper-root .gg-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  min-width: 260px;
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+  z-index: 9999;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  margin-top: 4px;
+  overflow: hidden;
+}
+
+#github-grouper-root .gg-repo-context {
+  padding: 8px 12px;
+  border-bottom: 1px solid #21262d;
+  background: #0d1117;
+  font-size: 11px;
+}
+
+#github-grouper-root .gg-repo-id {
+  color: #8b949e;
+  font-family: monospace;
+  margin-bottom: 2px;
+}
+
+#github-grouper-root .gg-repo-desc {
+  color: #6e7681;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#github-grouper-root .gg-search-wrap {
+  padding: 8px;
+  border-bottom: 1px solid #21262d;
+}
+
+#github-grouper-root .gg-search-wrap input[type="search"] {
+  width: 100%;
+  padding: 5px 8px;
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 5px;
+  color: #c9d1d9;
+  font-size: 12px;
+  outline: none;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+#github-grouper-root .gg-options {
+  max-height: 220px;
+  overflow-y: auto;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#github-grouper-root .gg-options li {
+  box-sizing: border-box;
+  padding: 0;
+  color: #c9d1d9;
+}
+
+
+#github-grouper-root .gg-options li.gg-empty {
+  padding: 12px;
+  color: #8b949e;
+  font-size: 12px;
+  text-align: center;
+}
+
+#github-grouper-root .gg-options li.hide-item {
+  display: none;
+}
+
+#github-grouper-root .gg-options li input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+#github-grouper-root .gg-options li input[type="checkbox"]:checked + label {
+  border-left-color: #6366f1;
+  background: #21262d;
+}
+
+#github-grouper-root .gg-options li label {
+  cursor: pointer;
+  color: #c9d1d9;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  padding: 8px 12px;
+  border-left: 3px solid transparent;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+#github-grouper-root .gg-options li label:hover {
+  background: #21262d;
+}
+
+#github-grouper-root .gg-options li label .gg-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+#github-grouper-root .gg-options li label .gg-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#github-grouper-root .gg-create-item {
+  border-top: 1px solid #21262d;
+}
+
+#github-grouper-root .gg-create-item label {
+  color: #6366f1 !important;
+}
+
+#github-grouper-root .gg-create-item label:hover {
+  background: #21262d !important;
+}
+
+#github-grouper-root .gg-selected-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 8px 12px;
+  border-top: 1px solid #21262d;
+  list-style: none;
+  margin: 0;
+}
+
+#github-grouper-root .gg-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 12px;
+  font-size: 10px;
+}
+`;
+
+let stylesInjected = false;
+function injectStyles() {
+  if (stylesInjected) return;
+  const style = document.createElement('style');
+  style.id = 'github-grouper-styles';
+  style.textContent = STYLES;
+  document.head.appendChild(style);
+  stylesInjected = true;
+}
+
+export function CategorySelector({ repoId, repoName, url, description }: Props) {
   const [data, setData] = useState<StorageSchema>({ categories: [], repos: [] });
   const [search, setSearch] = useState('');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const rootRef = useRef<HTMLDivElement>(null);
+  const detailsRef = useRef<HTMLElement>(null);
 
-  // Load and keep in sync
+  useEffect(() => {
+    injectStyles();
+  }, []);
+
   useEffect(() => {
     loadStorage().then((d) => {
       setData(d);
@@ -30,16 +279,6 @@ export function CategorySelector({ repoId, repoName, url }: Props) {
     });
   }, [repoId]);
 
-  // Close on outside click
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: MouseEvent) => {
-      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [open]);
-
   const filtered = data.categories.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()));
 
   const canCreate =
@@ -48,11 +287,11 @@ export function CategorySelector({ repoId, repoName, url }: Props) {
   async function toggleCategory(catId: string) {
     const next = selectedIds.includes(catId) ? selectedIds.filter((id) => id !== catId) : [...selectedIds, catId];
     setSelectedIds(next);
-    const updated = await setRepoCategories(repoId, repoName, url, next);
+    const updated = await setRepoCategories(repoId, repoName, url, description, next);
     setData(updated);
   }
 
-  async function createCategory() {
+  async function createAndSelect() {
     const name = search.trim();
     if (!name) return;
     const color = CATEGORY_COLORS[data.categories.length % CATEGORY_COLORS.length];
@@ -61,253 +300,134 @@ export function CategorySelector({ repoId, repoName, url }: Props) {
     setData(updated);
     const next = [...selectedIds, cat.id];
     setSelectedIds(next);
-    await setRepoCategories(repoId, repoName, url, next);
+    await setRepoCategories(repoId, repoName, url, description, next);
     setSearch('');
   }
 
   const selectedCats = data.categories.filter((c) => selectedIds.includes(c.id));
 
+  const summaryLabel =
+    selectedCats.length === 0
+      ? 'Categorise'
+      : selectedCats.length === 1
+        ? selectedCats[0].name
+        : `${selectedCats.length} categories`;
+
   return (
-    <div ref={rootRef} style={{ position: 'relative', fontFamily: 'inherit' }}>
-      <button
-        onClick={() => setOpen((o) => !o)}
-        title="Assign categories"
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '6px',
-          padding: '4px 10px',
-          border: '1px solid #30363d',
-          borderRadius: '6px',
-          background: open ? '#21262d' : '#161b22',
-          color: '#c9d1d9',
-          cursor: 'pointer',
-          fontSize: '12px',
-          lineHeight: '20px',
-          whiteSpace: 'nowrap',
-          transition: 'background 0.15s'
-        }}
-      >
+    <details role="listbox" ref={detailsRef as any}>
+      <summary>
         <TagIcon />
-        {selectedCats.length === 0
-          ? 'Categories'
-          : selectedCats.length === 1
-            ? selectedCats[0].name
-            : `${selectedCats.length} categories`}
-        <ChevronIcon open={open} />
-      </button>
+        <span>{summaryLabel}</span>
+        {selectedCats.length > 0 && <span class="gg-badge">{selectedCats.length}</span>}
+      </summary>
 
-      {/* Pill badges */}
-      {selectedCats.length > 0 && (
-        <div
-          style={{
-            position: 'absolute',
-            top: '-7px',
-            right: '-7px',
-            background: '#6366f1',
-            borderRadius: '50%',
-            width: '14px',
-            height: '14px',
-            fontSize: '9px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#fff',
-            fontWeight: 700,
-            pointerEvents: 'none'
-          }}
-        >
-          {selectedCats.length}
-        </div>
-      )}
+      <ul class="gg-dropdown">
+        {/* Repo context */}
+        <li class="gg-repo-context">
+          <div class="gg-repo-id">{repoId}</div>
+          {description && <div class="gg-repo-desc">{description}</div>}
+        </li>
 
-      {open && (
-        <div
-          style={{
-            position: 'absolute',
-            top: 'calc(100% + 6px)',
-            left: 0,
-            zIndex: 9999,
-            width: '240px',
-            background: '#161b22',
-            border: '1px solid #30363d',
-            borderRadius: '8px',
-            boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
-            overflow: 'hidden'
-          }}
-        >
-          {/* Search */}
-          <div style={{ padding: '8px', borderBottom: '1px solid #21262d' }}>
-            <input
-              autoFocus
-              placeholder="Search or create category…"
-              value={search}
-              onInput={(e) => setSearch((e.target as HTMLInputElement).value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && canCreate) createCategory();
-                if (e.key === 'Escape') setOpen(false);
-              }}
-              style={{
-                width: '100%',
-                padding: '5px 8px',
-                background: '#0d1117',
-                border: '1px solid #30363d',
-                borderRadius: '5px',
-                color: '#c9d1d9',
-                fontSize: '12px',
-                outline: 'none',
-                boxSizing: 'border-box'
-              }}
-            />
-          </div>
+        {/* Search */}
+        <li class="gg-search-wrap">
+          <input
+            type="search"
+            placeholder="Search or create category…"
+            value={search}
+            onInput={(e) => setSearch((e.target as HTMLInputElement).value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && canCreate) createAndSelect();
+              if (e.key === 'Escape' && detailsRef.current) {
+                (detailsRef.current as HTMLDetailsElement).open = false;
+              }
+            }}
+            // Prevent the details from closing when clicking the search input
+            onClick={(e) => e.stopPropagation()}
+          />
+        </li>
 
-          {/* List */}
-          <div style={{ maxHeight: '220px', overflowY: 'auto' }}>
-            {filtered.length === 0 && !canCreate && (
-              <div style={{ padding: '12px', color: '#8b949e', fontSize: '12px', textAlign: 'center' }}>
-                No categories yet
-              </div>
-            )}
+        {/* Options */}
+        <ul class="gg-options">
+          {filtered.length === 0 && !canCreate && <li class="gg-empty">No categories yet</li>}
 
-            {filtered.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => toggleCategory(cat.id)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  width: '100%',
-                  padding: '8px 12px',
-                  background: selectedIds.includes(cat.id) ? '#21262d' : 'transparent',
-                  border: 'none',
-                  color: '#c9d1d9',
-                  cursor: 'pointer',
-                  fontSize: '12px',
-                  textAlign: 'left',
-                  transition: 'background 0.1s'
-                }}
-                onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.background = '#21262d')}
-                onMouseLeave={(e) =>
-                  ((e.currentTarget as HTMLButtonElement).style.background = selectedIds.includes(cat.id)
-                    ? '#21262d'
-                    : 'transparent')
-                }
-              >
-                <span
-                  style={{
-                    width: '10px',
-                    height: '10px',
-                    borderRadius: '50%',
-                    background: cat.color,
-                    flexShrink: 0
-                  }}
+          {filtered.map((cat) => {
+            const checked = selectedIds.includes(cat.id);
+            const inputId = `gg-cat-${cat.id}`;
+            return (
+              <li key={cat.id}>
+                <input
+                  type="checkbox"
+                  id={inputId}
+                  name="gg-categories"
+                  checked={checked}
+                  onChange={() => toggleCategory(cat.id)}
+                  onClick={(e) => e.stopPropagation()}
                 />
-                <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {cat.name}
-                </span>
-                {selectedIds.includes(cat.id) && <CheckIcon />}
-              </button>
-            ))}
-
-            {canCreate && (
-              <button
-                onClick={createCategory}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  width: '100%',
-                  padding: '8px 12px',
-                  background: 'transparent',
-                  border: 'none',
-                  borderTop: filtered.length > 0 ? '1px solid #21262d' : 'none',
-                  color: '#6366f1',
-                  cursor: 'pointer',
-                  fontSize: '12px',
-                  textAlign: 'left'
-                }}
-                onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.background = '#21262d')}
-                onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.background = 'transparent')}
-              >
-                <PlusIcon />
-                Create &ldquo;{search.trim()}&rdquo;
-              </button>
-            )}
-          </div>
-
-          {/* Selected summary */}
-          {selectedCats.length > 0 && (
-            <div
-              style={{
-                padding: '8px 12px',
-                borderTop: '1px solid #21262d',
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: '4px'
-              }}
-            >
-              {selectedCats.map((c) => (
-                <span
-                  key={c.id}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    padding: '2px 7px',
-                    borderRadius: '12px',
-                    fontSize: '10px',
-                    background: c.color + '22',
-                    color: c.color,
-                    border: `1px solid ${c.color}55`
+                <label
+                  for={inputId}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleCategory(cat.id);
                   }}
                 >
-                  {c.name}
-                </span>
-              ))}
-            </div>
+                  <span class="gg-dot" style={{ background: cat.color }} />
+                  <span class="gg-name">{cat.name}</span>
+                </label>
+              </li>
+            );
+          })}
+
+          {canCreate && (
+            <li class="gg-create-item">
+              <label
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  createAndSelect();
+                }}
+              >
+                <PlusIcon />
+                <span class="gg-name">Create &ldquo;{search.trim()}&rdquo;</span>
+              </label>
+            </li>
           )}
-        </div>
-      )}
-    </div>
+        </ul>
+
+        {/* Selected tags */}
+        {selectedCats.length > 0 && (
+          <ul class="gg-selected-tags">
+            {selectedCats.map((c) => (
+              <li
+                key={c.id}
+                class="gg-tag"
+                style={{
+                  background: c.color + '22',
+                  color: c.color,
+                  border: `1px solid ${c.color}55`
+                }}
+              >
+                {c.name}
+              </li>
+            ))}
+          </ul>
+        )}
+      </ul>
+    </details>
   );
 }
-
-// ── Icons ────────────────────────────────────────────────────────────────────
 
 function TagIcon() {
   return (
-    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style={{ flexShrink: 0 }}>
       <path d="M1 2.75C1 1.784 1.784 1 2.75 1h4.586c.464 0 .909.184 1.237.513l6.5 6.5a1.75 1.75 0 0 1 0 2.474l-4.586 4.586a1.75 1.75 0 0 1-2.474 0l-6.5-6.5A1.752 1.752 0 0 1 1 7.336V2.75zm1.5 0v4.586c0 .1.04.196.11.268l6.5 6.5a.25.25 0 0 0 .354 0l4.586-4.586a.25.25 0 0 0 0-.354l-6.5-6.5A.25.25 0 0 0 7.336 2.5H2.75a.25.25 0 0 0-.25.25zM5 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2z" />
-    </svg>
-  );
-}
-
-function ChevronIcon({ open }: { open: boolean }) {
-  return (
-    <svg
-      width="12"
-      height="12"
-      viewBox="0 0 16 16"
-      fill="currentColor"
-      style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}
-    >
-      <path d="M4.427 7.427l3.396 3.396a.25.25 0 0 0 .354 0l3.396-3.396A.25.25 0 0 0 11.396 7H4.604a.25.25 0 0 0-.177.427z" />
-    </svg>
-  );
-}
-
-function CheckIcon() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 16 16" fill="#6366f1">
-      <path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0z" />
     </svg>
   );
 }
 
 function PlusIcon() {
   return (
-    <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" style={{ flexShrink: 0 }}>
       <path d="M7.75 2a.75.75 0 0 1 .75.75V7h4.25a.75.75 0 0 1 0 1.5H8.5v4.25a.75.75 0 0 1-1.5 0V8.5H2.75a.75.75 0 0 1 0-1.5H7V2.75A.75.75 0 0 1 7.75 2z" />
     </svg>
   );

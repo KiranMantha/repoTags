@@ -12,6 +12,8 @@ export interface RepoEntry {
   repoName: string;
   /** Full GitHub URL */
   url: string;
+  /** Repo description from About section */
+  description: string;
   /** Category IDs this repo belongs to */
   categoryIds: string[];
 }
