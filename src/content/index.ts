@@ -57,7 +57,7 @@ function mount() {
   wrapper.id = REPO_TAGS_ID;
   wrapper.style.cssText = 'display:inline-flex;align-items:center;align-self:center;vertical-align:middle;';
 
-  listItem.setAttribute('id', 'github-grouper-root');
+  listItem.setAttribute('id', `${REPO_TAGS_ID}-root`);
   listItem.append(wrapper);
 
   target.appendChild(listItem);
