@@ -6,18 +6,6 @@
   padding: 0;
 }
 
-html,
-body {
-  height: 100%;
-}
-
-body {
-  background: #212529;
-  color: #dee2e6;
-  font-family: 'DM Sans', sans-serif;
-  overflow-x: hidden;
-}
-
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -31,7 +19,353 @@ body {
   border-radius: 3px;
 }
 
-#app {
-  header {
+html,
+body {
+  height: 100%;
+}
+
+input {
+  color: #dee2e6;
+}
+
+body {
+  background: #212529;
+  color: #dee2e6;
+  font-family: 'DM Sans', sans-serif;
+  overflow-x: hidden;
+
+  .app {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+
+    &__header {
+      border-bottom: 1px solid #495057;
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      max-width: 1100px;
+      width: 100%;
+      margin: 0 auto;
+
+      &-logo {
+        width: 32px;
+        height: 32px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+
+      &-title {
+        font-size: 16px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
+
+      &-subtitle {
+        font-size: 11px;
+        font-family: 'DM Mono', monospace;
+      }
+    }
+
+    &__main {
+      flex: 1;
+      max-width: 1100px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 0 24px 48px;
+    }
+
+    &__loading {
+      padding: 80px 0;
+      text-align: center;
+      color: #4a5568;
+      font-size: 13px;
+      font-family: 'DM Mono', monospace;
+    }
+  }
+
+  // ── Category List ────────────────────────────────────────────────────────────
+
+  .category-list {
+    &__toolbar {
+      padding: 32px 0 24px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    &__heading {
+      font-size: 28px;
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      line-height: 1;
+
+      &-sub {
+        font-weight: 400;
+        font-size: 16px;
+        margin-left: 10px;
+      }
+    }
+
+    &__search {
+      padding: 8px 14px;
+      background: #343a40;
+      border: 1px solid #495057;
+      border-radius: 8px;
+      font-size: 13px;
+      outline: none;
+      width: 260px;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    &__grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 14px;
+    }
+
+    &__empty {
+      text-align: center;
+      padding: 80px 24px;
+      color: #4a5568;
+
+      &-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        background: #0f1520;
+        border: 1px solid #1a2030;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+      }
+
+      &-title {
+        font-size: 14px;
+        font-weight: 500;
+        color: #718096;
+        margin-bottom: 6px;
+      }
+
+      &-hint {
+        font-size: 12px;
+        font-family: 'DM Mono', monospace;
+      }
+    }
+  }
+
+  // ── Category Card ────────────────────────────────────────────────────────────
+
+  .category-card {
+    background: #343a40;
+    border: 1px solid #495057;
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+    overflow: hidden;
+
+    &__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    &__name {
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+    }
+
+    &__name-input {
+      width: 100%;
+      padding: 4px 6px;
+      background: #212529;
+      border: 1px solid #212529;
+      border-radius: 5px;
+      font-size: 15px;
+      font-weight: 500;
+      outline: none;
+      font-family: 'DM Sans', sans-serif;
+      // border-color set inline from category.color
+    }
+
+    &__actions {
+      display: flex;
+      gap: 4px;
+    }
+
+    &__count {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      &-number {
+        font-size: 24px;
+        font-weight: 700;
+        font-family: 'DM Mono', monospace;
+        letter-spacing: -0.04em;
+      }
+
+      &-label {
+        font-size: 11px;
+      }
+    }
+  }
+
+  // ── Icon Button ──────────────────────────────────────────────────────────────
+
+  .icon-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.1s;
+
+    &--default {
+      background: #1a2030;
+      border: 1px solid #2d3748;
+      color: #94a3b8;
+    }
+
+    &--save {
+      background: #0d2b1a;
+      border: 1px solid #166534;
+      color: #4ade80;
+    }
+
+    &--danger {
+      background: #2d1515;
+      border: 1px solid #7f1d1d;
+      color: #f87171;
+    }
+  }
+
+  // ── Category Detail ──────────────────────────────────────────────────────────
+
+  .category-detail {
+    &__toolbar {
+      padding: 28px 0 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    &__back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: #343a40;
+      border: 1px solid #495057;
+      border-radius: 8px;
+      color: inherit;
+      font-size: 12px;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.1s;
+    }
+
+    &__heading {
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: inherit;
+    }
+
+    &__badge {
+      margin-left: auto;
+      padding: 3px 10px;
+      color: #fff;
+      background: oklch(48.8% 0.243 264.376);
+      border: 1px solid oklch(48.8% 0.243 264.376);
+      border-radius: 20px;
+      font-size: 11px;
+      font-family: 'DM Mono', monospace;
+      font-weight: 500;
+    }
+
+    &__search {
+      margin-bottom: 20px;
+
+      input {
+        padding: 8px 14px;
+        background: #343a40;
+        border: 1px solid #495057;
+        border-radius: 8px;
+        font-size: 13px;
+        outline: none;
+        width: 260px;
+        font-family: 'DM Sans', sans-serif;
+      }
+    }
+
+    &__empty {
+      font-size: 13px;
+      padding: 40px 0;
+      font-family: 'DM Mono', monospace;
+    }
+
+    &__grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 12px;
+    }
+  }
+
+  // ── Repo Card ────────────────────────────────────────────────────────────────
+
+  .repo-card {
+    display: block;
+    padding: 16px 18px;
+    background: #343a40;
+    border: 1px solid #495057;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: all 0.15s;
+    position: relative;
+    overflow: hidden;
+
+    &__inner {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    &__icon {
+      flex-shrink: 0;
+    }
+
+    &__meta {
+      overflow: hidden;
+      flex: 1;
+    }
+
+    &__id {
+      font-size: 13px;
+      font-family: 'DM Mono', monospace;
+      white-space: nowrap;
+      color: #dee2e6;
+    }
+
+    &__external {
+      margin-left: auto;
+      flex-shrink: 0;
+    }
   }
 }
