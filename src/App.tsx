@@ -17,7 +17,7 @@ function Header() {
   return (
     <header
       style={{
-        borderBottom: '1px solid #1a2030',
+        borderBottom: '1px solid #495057',
         padding: '20px 24px',
         display: 'flex',
         alignItems: 'center',
@@ -47,7 +47,7 @@ function Header() {
         <h1 style={{ fontSize: '16px', fontWeight: 600, color: '#e2e8f0', letterSpacing: '-0.01em' }}>
           GitHub Grouper
         </h1>
-        <p style={{ fontSize: '11px', color: '#4a5568', fontFamily: "'DM Mono', monospace" }}>your repos, organised</p>
+        <p style={{ fontSize: '11px', fontFamily: "'DM Mono', monospace" }}>your repos, organised</p>
       </div>
     </header>
   );

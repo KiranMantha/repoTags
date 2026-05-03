@@ -7,14 +7,12 @@ import {
   filteredCategories,
   removeCategory,
   renameCategory,
-  repos,
   searchQuery
 } from './store';
 
 export function CategoryList() {
   const cats = filteredCategories.value;
   const counts = categoryRepoCounts.value;
-  const totalRepos = repos.value.filter((r) => r.categoryIds.length > 0).length;
 
   return (
     <div>
@@ -29,15 +27,10 @@ export function CategoryList() {
           flexWrap: 'wrap'
         }}
       >
-        <div>
-          <h2 style={{ fontSize: '28px', fontWeight: 600, letterSpacing: '-0.03em', color: '#e2e8f0', lineHeight: 1 }}>
-            {cats.length}
-            <span style={{ color: '#4a5568', fontWeight: 400, fontSize: '16px' }}> categories</span>
-          </h2>
-          <p style={{ fontSize: '12px', color: '#4a5568', marginTop: '4px', fontFamily: "'DM Mono', monospace" }}>
-            {totalRepos} repos grouped
-          </p>
-        </div>
+        <h2 style={{ fontSize: '28px', fontWeight: 600, letterSpacing: '-0.03em', color: '#e2e8f0', lineHeight: 1 }}>
+          {cats.length}
+          <span style={{ fontWeight: 400, fontSize: '16px', marginLeft: '10px' }}> categories</span>
+        </h2>
 
         <input
           placeholder="Filter categories…"
@@ -47,13 +40,13 @@ export function CategoryList() {
           }}
           style={{
             padding: '8px 14px',
-            background: '#0f1520',
-            border: '1px solid #1a2030',
+            background: '#343a40',
+            border: '1px solid #495057',
             borderRadius: '8px',
             color: '#e2e8f0',
             fontSize: '13px',
             outline: 'none',
-            width: '220px',
+            width: '260px',
             fontFamily: "'DM Sans', sans-serif"
           }}
         />
@@ -81,7 +74,6 @@ export function CategoryList() {
 function CategoryCard({ category, count }: { category: Category; count: number }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(category.name);
-  const [hovered, setHovered] = useState(false);
 
   async function save() {
     if (draft.trim() && draft.trim() !== category.name) {
@@ -92,11 +84,12 @@ function CategoryCard({ category, count }: { category: Category; count: number }
 
   return (
     <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onClick={() => {
+        activeCategory.value = category;
+      }}
       style={{
-        background: hovered ? '#0f1520' : '#0b1018',
-        border: `1px solid ${hovered ? category.color + '55' : '#1a2030'}`,
+        background: '#343a40',
+        border: `1px solid #495057`,
         borderRadius: '12px',
         padding: '20px',
         cursor: 'pointer',
@@ -105,40 +98,55 @@ function CategoryCard({ category, count }: { category: Category; count: number }
         overflow: 'hidden'
       }}
     >
-      {/* Glow accent */}
+      {/* Header */}
       <div
         style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: '2px',
-          background: `linear-gradient(90deg, ${category.color}, ${category.color}00)`,
-          opacity: hovered ? 1 : 0.4,
-          transition: 'opacity 0.15s'
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '8px',
+          marginBottom: '16px'
         }}
-      />
-
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '16px' }}>
-        <div
-          style={{
-            width: '36px',
-            height: '36px',
-            borderRadius: '10px',
-            background: category.color + '20',
-            border: `1px solid ${category.color}40`,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}
-        >
-          <span
-            style={{ width: '12px', height: '12px', borderRadius: '50%', background: category.color, display: 'block' }}
+      >
+        {/* Name */}
+        {editing ? (
+          <input
+            autoFocus
+            value={draft}
+            onInput={(e) => setDraft((e.target as HTMLInputElement).value)}
+            onBlur={save}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') save();
+              if (e.key === 'Escape') setEditing(false);
+            }}
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: '100%',
+              padding: '4px 6px',
+              background: '#0d1117',
+              border: `1px solid ${category.color}`,
+              borderRadius: '5px',
+              color: '#e2e8f0',
+              fontSize: '15px',
+              fontWeight: 500,
+              outline: 'none',
+              fontFamily: "'DM Sans', sans-serif"
+            }}
           />
-        </div>
+        ) : (
+          <div
+            style={{
+              fontSize: '15px',
+              fontWeight: 500,
+              color: '#e2e8f0',
+              letterSpacing: '-0.01em'
+            }}
+          >
+            {category.name}
+          </div>
+        )}
 
-        <div style={{ display: 'flex', gap: '4px', opacity: hovered ? 1 : 0, transition: 'opacity 0.15s' }}>
+        <div style={{ display: 'flex', gap: '4px' }}>
           <IconButton
             title="Rename"
             onClick={(e) => {
@@ -164,43 +172,6 @@ function CategoryCard({ category, count }: { category: Category; count: number }
         </div>
       </div>
 
-      {/* Name */}
-      {editing ? (
-        <input
-          autoFocus
-          value={draft}
-          onInput={(e) => setDraft((e.target as HTMLInputElement).value)}
-          onBlur={save}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') save();
-            if (e.key === 'Escape') setEditing(false);
-          }}
-          onClick={(e) => e.stopPropagation()}
-          style={{
-            width: '100%',
-            padding: '4px 6px',
-            background: '#0d1117',
-            border: `1px solid ${category.color}`,
-            borderRadius: '5px',
-            color: '#e2e8f0',
-            fontSize: '15px',
-            fontWeight: 500,
-            outline: 'none',
-            fontFamily: "'DM Sans', sans-serif",
-            marginBottom: '8px'
-          }}
-        />
-      ) : (
-        <div
-          onClick={() => {
-            activeCategory.value = category;
-          }}
-          style={{ fontSize: '15px', fontWeight: 500, color: '#e2e8f0', marginBottom: '8px', letterSpacing: '-0.01em' }}
-        >
-          {category.name}
-        </div>
-      )}
-
       <div
         onClick={() => {
           activeCategory.value = category;
@@ -211,14 +182,13 @@ function CategoryCard({ category, count }: { category: Category; count: number }
           style={{
             fontSize: '24px',
             fontWeight: 700,
-            color: category.color,
             fontFamily: "'DM Mono', monospace",
             letterSpacing: '-0.04em'
           }}
         >
           {count}
         </span>
-        <span style={{ fontSize: '11px', color: '#4a5568' }}>{count === 1 ? 'repo' : 'repos'}</span>
+        <span style={{ fontSize: '11px' }}>{count === 1 ? 'repo' : 'repos'}</span>
       </div>
     </div>
   );
@@ -235,24 +205,21 @@ function IconButton({
   danger?: boolean;
   onClick: (e: MouseEvent) => void;
 }) {
-  const [hov, setHov] = useState(false);
   return (
     <button
       title={title}
       onClick={onClick}
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
       style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         width: '26px',
         height: '26px',
-        background: hov ? (danger ? '#2d1515' : '#1a2030') : 'transparent',
-        border: `1px solid ${hov ? (danger ? '#7f1d1d' : '#2d3748') : 'transparent'}`,
+        background: danger ? '#2d1515' : '#1a2030',
+        border: `1px solid ${danger ? '#7f1d1d' : '#2d3748'}`,
         borderRadius: '6px',
         cursor: 'pointer',
-        color: hov ? (danger ? '#f87171' : '#94a3b8') : '#4a5568',
+        color: danger ? '#f87171' : '#94a3b8',
         transition: 'all 0.1s'
       }}
     >
