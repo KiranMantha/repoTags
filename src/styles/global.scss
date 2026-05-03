@@ -219,7 +219,10 @@ body {
       }
 
       &-label {
-        font-size: 11px;
+        font-size: 12px;
+        margin-left: 8px;
+        letter-spacing: -0.03em;
+        font-family: 'DM Sans', sans-serif;
       }
     }
   }

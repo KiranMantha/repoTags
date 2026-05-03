@@ -1,11 +1,11 @@
 {
   "manifest_version": 3,
-  "name": "GitHub Grouper",
+  "name": "Repo Tags",
   "version": "1.0.0",
   "description": "Organise your GitHub repos into categories",
   "permissions": ["storage"],
   "action": {
-    "default_title": "GitHub Grouper",
+    "default_title": "Repo Tags",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",

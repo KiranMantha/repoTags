@@ -21,7 +21,7 @@ function Header() {
         <Icon name="logo" size={18} color="white" />
       </div>
       <div>
-        <h1 class="app__header-title">GitHub Grouper</h1>
+        <h1 class="app__header-title">Repo Tags</h1>
         <p class="app__header-subtitle">your repos, organised</p>
       </div>
     </header>

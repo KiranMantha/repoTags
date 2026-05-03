@@ -137,8 +137,10 @@ function CategoryCard({ category, count }: { category: Category; count: number }
           activeCategory.value = category;
         }}
       >
-        <span class="category-card__count-number">{count}</span>
-        <span class="category-card__count-label">{count === 1 ? 'repo' : 'repos'}</span>
+        <span class="category-card__count-number">
+          {count}
+          <span class="category-card__count-label">{count === 1 ? 'repo' : 'repos'}</span>
+        </span>
       </div>
     </div>
   );
