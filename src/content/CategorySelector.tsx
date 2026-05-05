@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
+import { generateId, loadStorage, onStorageChange, setRepoCategories, upsertCategory } from '../shared/storage';
 import type { Category, StorageSchema } from '../shared/types';
-import { CATEGORY_COLORS } from '../shared/types';
-import { loadStorage, onStorageChange, upsertCategory, setRepoCategories, generateId } from '../shared/storage';
 
 type CategorySelectorProps = {
   repoId: string;
@@ -236,8 +235,7 @@ export function CategorySelector({ repoId, repoName, url, description }: Categor
   async function createAndSelect() {
     const name = search.trim();
     if (!name) return;
-    const color = CATEGORY_COLORS[data.categories.length % CATEGORY_COLORS.length];
-    const cat: Category = { id: generateId(), name, color, createdAt: Date.now() };
+    const cat: Category = { id: generateId(), name, createdAt: Date.now() };
     const updated = await upsertCategory(cat);
     setData(updated);
     const next = [...selectedIds, cat.id];

@@ -1,6 +1,6 @@
 import { CategoryDetail } from './CategoryDetail';
 import { CategoryList } from './CategoryList';
-import { Icon } from './Icon';
+import { Header } from './Header';
 import { activeCategory, isLoaded } from './store';
 
 export function App() {
@@ -11,20 +11,6 @@ export function App() {
         {isLoaded.value ? activeCategory.value ? <CategoryDetail /> : <CategoryList /> : <LoadingState />}
       </main>
     </div>
-  );
-}
-
-function Header() {
-  return (
-    <header class="app__header">
-      <div class="app__header-logo">
-        <Icon name="logo" size={18} color="white" />
-      </div>
-      <div>
-        <h1 class="app__header-title">Repo Tags</h1>
-        <p class="app__header-subtitle">your repos, organised</p>
-      </div>
-    </header>
   );
 }
 
