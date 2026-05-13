@@ -20,7 +20,7 @@ export function CategoryList() {
       <div class="category-list__toolbar">
         <h2 class="category-list__heading">
           {cats.length}
-          <span class="category-list__heading-sub">categories</span>
+          <span class="category-list__heading-sub">{cats.length > 1 ? 'categories' : 'category'}</span>
         </h2>
 
         <input
@@ -89,7 +89,7 @@ function CategoryCard({ category, count }: { category: Category; count: number }
                   setDraft('');
                 }}
               >
-                <Icon name="save" size={12} />
+                <Icon name="check" size={12} />
               </IconButton>
               <IconButton
                 title={editing ? 'Cancel' : 'Rename'}

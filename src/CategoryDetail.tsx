@@ -43,7 +43,11 @@ export function CategoryDetail() {
         </div>
       )}
 
-      {filtered.length === 0 ? (
+      {repos.length === 0 ? (
+        <div class="category-detail__empty">No repositories available in this category.</div>
+      ) : null}
+
+      {search && filtered.length === 0 ? (
         <div class="category-detail__empty">No repos match your search.</div>
       ) : (
         <div class="category-detail__grid">

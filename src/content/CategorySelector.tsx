@@ -41,16 +41,6 @@ const STYLES = `
   display: none;
 }
 
-#repo-tags-root details[role="listbox"] > summary .gg-badge {
-  background: #2f3742;
-  border-radius: 10px;
-  padding: 0 5px;
-  font-size: 10px;
-  font-weight: 700;
-  color: #fff;
-  line-height: 16px;
-}
-
 #repo-tags-root details[role="listbox"] > summary::after {
   content: '';
   height: 16px;
@@ -77,12 +67,22 @@ const STYLES = `
   transform: rotate(180deg);
 }
 
-#repo-tags-root details[role="listbox"][open] > summary + .gg-dropdown {
+#repo-tags-root details[role="listbox"] > summary .badge {
+  background: #2f3742;
+  border-radius: 10px;
+  padding: 0 5px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 16px;
+}
+
+#repo-tags-root details[role="listbox"][open] > summary + .dropdown {
   display: block;
   font-size: 14px;
 }
 
-#repo-tags-root .gg-dropdown {
+#repo-tags-root .dropdown {
   display: none;
   position: absolute;
   top: 100%;
@@ -100,12 +100,12 @@ const STYLES = `
   overflow: hidden;
 }
 
-#repo-tags-root .gg-search-wrap {
+#repo-tags-root .search-container {
   padding: 8px;
   border-bottom: 1px solid #21262d;
 }
 
-#repo-tags-root .gg-search-wrap input[type="search"] {
+#repo-tags-root .search-container input[type="search"] {
   width: 100%;
   padding: 5px 8px;
   background: #0d1117;
@@ -117,7 +117,7 @@ const STYLES = `
   font-family: inherit;
 }
 
-#repo-tags-root .gg-options {
+#repo-tags-root .options {
   max-height: 220px;
   overflow-y: auto;
   list-style: none;
@@ -126,24 +126,28 @@ const STYLES = `
   padding-bottom: 6px;
 }
 
-#repo-tags-root .gg-options li {
+#repo-tags-root .options li {
   box-sizing: border-box;
   padding: 0;
   color: #c9d1d9;
 }
 
 
-#repo-tags-root .gg-options li.gg-empty {
+#repo-tags-root .options li.gg-empty {
   padding: 12px;
   color: #8b949e;
   text-align: center;
 }
 
-#repo-tags-root .gg-options li.hide-item {
+#repo-tags-root .options li.hide-item {
   display: none;
 }
 
-#repo-tags-root .gg-options li label {
+#repo-tags-root .options li.create-item {
+  border-top: 1px solid #21262d;
+}
+
+#repo-tags-root .options li label {
   cursor: pointer;
   color: #c9d1d9;
   display: flex;
@@ -155,34 +159,14 @@ const STYLES = `
   white-space: nowrap;
 }
 
-#repo-tags-root .gg-options li label:hover {
+#repo-tags-root .options li label:hover {
   background: #21262d;
 }
 
-#repo-tags-root .gg-options li label .gg-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-#repo-tags-root .gg-options li label .gg-name {
+#repo-tags-root .options li label .option-text {
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-#repo-tags-root .gg-create-item {
-  border-top: 1px solid #21262d;
-}
-
-#repo-tags-root .gg-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 7px;
-  border-radius: 12px;
-  font-size: 10px;
 }
 `;
 
@@ -251,12 +235,12 @@ export function CategorySelector({ repoId, repoName, url, description }: Categor
       <summary>
         <TagIcon />
         <span>Categories</span>
-        <span class="gg-badge">{selectedCats.length}</span>
+        <span class="badge">{selectedCats.length}</span>
       </summary>
 
-      <ul class="gg-dropdown">
+      <ul class="dropdown">
         {/* Search */}
-        <li class="gg-search-wrap">
+        <li class="search-container">
           <input
             type="search"
             placeholder="Search or create category…"
@@ -274,7 +258,7 @@ export function CategorySelector({ repoId, repoName, url, description }: Categor
         </li>
 
         {/* Options */}
-        <ul class="gg-options">
+        <ul class="options">
           {filtered.length === 0 && !canCreate && <li class="gg-empty">No categories yet</li>}
 
           {filtered.map((cat) => {
@@ -298,14 +282,14 @@ export function CategorySelector({ repoId, repoName, url, description }: Categor
                     onChange={() => toggleCategory(cat.id)}
                     onClick={(e) => e.stopPropagation()}
                   />
-                  <span class="gg-name">{cat.name}</span>
+                  <span class="option-text">{cat.name}</span>
                 </label>
               </li>
             );
           })}
 
           {canCreate && (
-            <li class="gg-create-item">
+            <li class="create-item">
               <label
                 onClick={(e) => {
                   e.preventDefault();
@@ -314,7 +298,7 @@ export function CategorySelector({ repoId, repoName, url, description }: Categor
                 }}
               >
                 <PlusIcon />
-                <span class="gg-name">Create &ldquo;{search.trim()}&rdquo;</span>
+                <span class="option-text">Create &ldquo;{search.trim()}&rdquo;</span>
               </label>
             </li>
           )}

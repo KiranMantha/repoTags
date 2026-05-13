@@ -64,7 +64,6 @@ export function Header() {
       </div>
       <div>
         <h1 class="app__header-title">Repo Tags</h1>
-        <p class="app__header-subtitle">your repos, organised</p>
       </div>
 
       <div class="app__header-actions">

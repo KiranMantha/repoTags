@@ -8,7 +8,7 @@
   --bg-error: #2d1515;
 
   --border: #495057;
-  --border-light: #2d3748;
+  --border-light: #6c757d;
   --border-success: #166534;
   --border-error: #7f1d1d;
 
@@ -57,6 +57,7 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  letter-spacing: 0.5px;
 }
 
 ::-webkit-scrollbar {
@@ -79,12 +80,16 @@ body {
 
 input {
   color: var(--text-primary);
+
+  &::placeholder {
+    color: var(--text-secondary);
+  }
 }
 
 button {
-  color: var(--text-white);
-  background-color: #6c757d;
-  border: 1px solid #6c757d;
+  color: var(--text-primary);
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-light);
   display: inline-flex;
   gap: var(--space-sm);
   align-items: center;
@@ -94,8 +99,9 @@ button {
   line-height: 1em;
   cursor: pointer;
 
-  & + & {
-    margin-left: var(--space-md);
+  &:hover,
+  &:focus {
+    color: var(--text-white);
   }
 }
 
@@ -104,7 +110,6 @@ body {
   color: var(--text-primary);
   font-family: var(--font-sans);
   overflow-x: hidden;
-  letter-spacing: 0.5px;
 
   .app {
     min-height: 100vh;
@@ -136,12 +141,14 @@ body {
       &-title {
         font-size: 16px;
         font-weight: 600;
-        letter-spacing: -0.01em;
       }
 
-      &-subtitle {
-        font-size: 11px;
-        font-family: var(--font-mono);
+      &-actions {
+        display: flex;
+        gap: var(--space-md);
+        align-items: center;
+        justify-content: flex-end;
+        flex: 1;
       }
     }
 
@@ -218,7 +225,6 @@ body {
     &__heading {
       font-size: 28px;
       font-weight: 600;
-      letter-spacing: -0.03em;
       line-height: 1;
 
       &-sub {
@@ -231,7 +237,7 @@ body {
     &__search {
       padding: 8px 14px;
       background: var(--bg-input);
-      border: 1px solid var(--border);
+      border: 1px solid var(--border-light);
       border-radius: 8px;
       font-size: 13px;
       outline: none;
@@ -248,7 +254,6 @@ body {
     &__empty {
       text-align: center;
       padding: 80px 24px;
-      color: var(--text-muted);
 
       &-icon {
         width: 56px;
@@ -263,10 +268,9 @@ body {
       }
 
       &-title {
-        font-size: 14px;
+        font-size: 18px;
         font-weight: 500;
-        color: #718096;
-        margin-bottom: 6px;
+        margin-bottom: 10px;
       }
 
       &-hint {
@@ -280,7 +284,7 @@ body {
 
   .category-card {
     background: var(--bg-input);
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-light);
     border-radius: var(--radius-xl);
     padding: 20px;
     cursor: pointer;
@@ -297,16 +301,15 @@ body {
     }
 
     &__name {
-      font-size: 15px;
+      font-size: 24px;
       font-weight: 500;
-      letter-spacing: -0.01em;
     }
 
     &__name-input {
       width: 100%;
-      padding: 4px 6px;
+      padding: 4px 8px;
       background: var(--bg-body);
-      border: 1px solid var(--bg-body);
+      border: 1px solid var(--border);
       border-radius: 5px;
       font-size: 15px;
       font-weight: 500;
@@ -329,13 +332,11 @@ body {
         font-size: 24px;
         font-weight: 700;
         font-family: var(--font-mono);
-        letter-spacing: -0.04em;
       }
 
       &-label {
         font-size: 12px;
         margin-left: 8px;
-        letter-spacing: -0.03em;
         font-family: var(--font-sans);
       }
     }
@@ -389,7 +390,7 @@ body {
       gap: var(--space-sm);
       padding: 6px 12px;
       background: var(--bg-input);
-      border: 1px solid var(--border);
+      border: 1px solid var(--border-light);
       border-radius: var(--radius-lg);
       color: inherit;
       font-size: 12px;
@@ -399,9 +400,8 @@ body {
     }
 
     &__heading {
-      font-size: 22px;
+      font-size: 24px;
       font-weight: 600;
-      letter-spacing: -0.02em;
       color: inherit;
     }
 
@@ -435,7 +435,7 @@ body {
     &__empty {
       font-size: 13px;
       padding: 40px 0;
-      font-family: var(--font-mono);
+      text-align: center;
     }
 
     &__grid {
@@ -451,7 +451,7 @@ body {
     display: block;
     padding: 16px 18px;
     background: var(--bg-input);
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-light);
     border-radius: 10px;
     text-decoration: none;
     transition: all 0.15s;
