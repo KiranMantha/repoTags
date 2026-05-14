@@ -62,10 +62,7 @@ export function Header() {
       <div class="app__header-logo">
         <Icon name="logo" size={18} color="#fff" />
       </div>
-      <div>
-        <h1 class="app__header-title">Repo Tags</h1>
-        <p class="app__header-subtitle">your repos, organised</p>
-      </div>
+      <h1 class="app__header-title">Repo Tags</h1>
 
       <div class="app__header-actions">
         <button class="app__header-btn" title="Import data" onClick={handleUploadClick}>
