@@ -1,5 +1,13 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { generateId, loadStorage, onStorageChange, setRepoCategories, upsertCategory } from '../shared/storage';
+import type { StorageStatus } from '../shared/storage';
+import {
+  generateId,
+  getStorageStatus,
+  loadStorage,
+  onStorageChange,
+  setRepoCategories,
+  upsertCategory
+} from '../shared/storage';
 import type { Category, StorageSchema } from '../shared/types';
 
 type CategorySelectorProps = {
@@ -201,6 +209,8 @@ export function CategorySelector({ repoId, repoName, url, description }: Categor
   const [data, setData] = useState<StorageSchema>({ categories: [], repos: [] });
   const [search, setSearch] = useState('');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [quota, setQuota] = useState<StorageStatus | null>(null);
+
   const detailsRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -213,26 +223,38 @@ export function CategorySelector({ repoId, repoName, url, description }: Categor
       const repo = d.repos.find((r) => r.repoId === repoId);
       setSelectedIds(repo?.categoryIds ?? []);
     });
+
+    getStorageStatus().then(setQuota);
+
     return onStorageChange((d) => {
       setData(d);
       const repo = d.repos.find((r) => r.repoId === repoId);
       setSelectedIds(repo?.categoryIds ?? []);
+      // refresh quota every time storage changes
+      getStorageStatus().then(setQuota);
     });
   }, [repoId]);
+
+  const isStorageFull = quota?.level === 'full';
 
   const filtered = data.categories.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()));
 
   const canCreate =
-    search.trim().length > 0 && !data.categories.some((c) => c.name.toLowerCase() === search.trim().toLowerCase());
+    !isStorageFull &&
+    search.trim().length > 0 &&
+    !data.categories.some((c) => c.name.toLowerCase() === search.trim().toLowerCase());
 
   async function toggleCategory(catId: string) {
+    if (isStorageFull && !selectedIds.includes(catId)) return; // block adding when full; allow unchecking
     const next = selectedIds.includes(catId) ? selectedIds.filter((id) => id !== catId) : [...selectedIds, catId];
     setSelectedIds(next);
     const updated = await setRepoCategories(repoId, repoName, url, description, next);
     setData(updated);
+    getStorageStatus().then(setQuota);
   }
 
   async function createAndSelect() {
+    if (isStorageFull) return;
     const name = search.trim();
     if (!name) return;
     const cat: Category = { id: generateId(), name, createdAt: Date.now() };
@@ -242,6 +264,7 @@ export function CategorySelector({ repoId, repoName, url, description }: Categor
     setSelectedIds(next);
     await setRepoCategories(repoId, repoName, url, description, next);
     setSearch('');
+    getStorageStatus().then(setQuota);
   }
 
   const selectedCats = data.categories.filter((c) => selectedIds.includes(c.id));
@@ -259,7 +282,7 @@ export function CategorySelector({ repoId, repoName, url, description }: Categor
         <li class="gg-search-wrap">
           <input
             type="search"
-            placeholder="Search or create category…"
+            placeholder={isStorageFull ? 'Search categories…' : 'Search or create category…'}
             value={search}
             onInput={(e) => setSearch((e.target as HTMLInputElement).value)}
             onKeyDown={(e) => {
@@ -280,6 +303,7 @@ export function CategorySelector({ repoId, repoName, url, description }: Categor
           {filtered.map((cat) => {
             const checked = selectedIds.includes(cat.id);
             const inputId = `gg-cat-${cat.id}`;
+            const disableCategorySelection = isStorageFull && !checked; // can uncheck, cannot add new
             return (
               <li key={cat.id}>
                 <label
@@ -287,7 +311,11 @@ export function CategorySelector({ repoId, repoName, url, description }: Categor
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    toggleCategory(cat.id);
+                    if (!disableCategorySelection) toggleCategory(cat.id);
+                  }}
+                  style={{
+                    opacity: disableCategorySelection ? 0.45 : 1,
+                    cursor: disableCategorySelection ? 'not-allowed' : 'pointer'
                   }}
                 >
                   <input
@@ -295,7 +323,10 @@ export function CategorySelector({ repoId, repoName, url, description }: Categor
                     id={inputId}
                     name="gg-categories"
                     checked={checked}
-                    onChange={() => toggleCategory(cat.id)}
+                    disabled={disableCategorySelection}
+                    onChange={() => {
+                      if (!disableCategorySelection) toggleCategory(cat.id);
+                    }}
                     onClick={(e) => e.stopPropagation()}
                   />
                   <span class="gg-name">{cat.name}</span>
@@ -319,6 +350,18 @@ export function CategorySelector({ repoId, repoName, url, description }: Categor
             </li>
           )}
         </ul>
+
+        {/* Storage full message — replaces storage-full-item, sits below the list */}
+        {isStorageFull && (
+          <li>
+            <label class="storage-full-item">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style={{ flexShrink: 0 }}>
+                <path d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0M9 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0" />
+              </svg>
+              <span>Storage full. Open the dashboard to free up space.</span>
+            </label>
+          </li>
+        )}
       </ul>
     </details>
   );

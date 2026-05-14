@@ -3,6 +3,24 @@ import { STORAGE_KEY } from './types';
 
 const DEFAULT: StorageSchema = { categories: [], repos: [] };
 
+export type StorageStatus = {
+  used: number;
+  total: number;
+  percent: number;
+  level: 'ok' | 'warn' | 'critical' | 'full';
+};
+
+export async function getStorageStatus(): Promise<StorageStatus> {
+  return new Promise((resolve) => {
+    chrome.storage.sync.getBytesInUse(STORAGE_KEY, (used) => {
+      const total = chrome.storage.sync.QUOTA_BYTES;
+      const percent = Math.round((used / total) * 100);
+      const level = percent >= 99 ? 'full' : percent >= 95 ? 'critical' : percent >= 80 ? 'warn' : 'ok';
+      resolve({ used, total, percent, level });
+    });
+  });
+}
+
 export async function loadStorage(): Promise<StorageSchema> {
   return new Promise((resolve) => {
     chrome.storage.sync.get(STORAGE_KEY, (result) => {

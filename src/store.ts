@@ -1,9 +1,11 @@
 import { computed, signal } from '@preact/signals';
 import {
   deleteCategory as deleteStorageCategory,
+  getStorageStatus,
   loadStorage,
   onStorageChange,
-  upsertCategory
+  upsertCategory,
+  type StorageStatus
 } from './shared/storage';
 import type { Category, StorageSchema } from './shared/types';
 
@@ -11,6 +13,7 @@ export const storageData = signal<StorageSchema>({ categories: [], repos: [] });
 export const activeCategory = signal<Category | null>(null);
 export const searchQuery = signal('');
 export const isLoaded = signal(false);
+export const storageStatus = signal<StorageStatus | null>(null);
 
 export const categories = computed(() => storageData.value.categories);
 export const repos = computed(() => storageData.value.repos);
@@ -36,12 +39,18 @@ export const categoryRepoCounts = computed(() => {
   return counts;
 });
 
+export async function refreshStorage() {
+  storageStatus.value = await getStorageStatus();
+}
+
 export async function init() {
   const data = await loadStorage();
   storageData.value = data;
   isLoaded.value = true;
-  onStorageChange((d) => {
+  await refreshStorage();
+  onStorageChange(async (d) => {
     storageData.value = d;
+    await refreshStorage();
   });
 }
 
@@ -50,10 +59,12 @@ export async function renameCategory(id: string, name: string) {
   if (!cat) return;
   const updated = await upsertCategory({ ...cat, name });
   storageData.value = updated;
+  await refreshStorage();
 }
 
 export async function removeCategory(id: string) {
   const updated = await deleteStorageCategory(id);
   storageData.value = updated;
   if (activeCategory.value?.id === id) activeCategory.value = null;
+  await refreshStorage();
 }
