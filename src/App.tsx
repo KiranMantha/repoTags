@@ -23,7 +23,7 @@ export function App() {
 
 function QuotaBar() {
   const q = storageStatus.value;
-  if (!q) return null;
+  if (!q || q.level === 'ok') return null;
 
   const usedKb = (q.used / 1024).toFixed(1);
   const totalKb = (q.total / 1024).toFixed(0);
