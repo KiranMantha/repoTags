@@ -59,6 +59,8 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  font-size: 14px;
+  letter-spacing: -0.01em;
 }
 
 ::-webkit-scrollbar {
@@ -117,6 +119,14 @@ body {
     // ── Quota Bar ────────────────────────────────────────────────────────────────
     .quota-bar {
       width: 100%;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      flex-wrap: wrap;
       border-bottom: 1px solid transparent;
 
       &--warn {
@@ -130,17 +140,6 @@ body {
       &--full {
         background: #1c0606;
         border-color: #7f1d1d;
-      }
-
-      &__inner {
-        max-width: 1100px;
-        margin: 0 auto;
-        padding: 20px 24px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 24px;
-        flex-wrap: wrap;
       }
 
       &__info {
@@ -159,7 +158,6 @@ body {
       }
 
       &__label {
-        font-size: 12px;
         font-weight: 500;
         color: var(--text-primary);
         white-space: nowrap;
@@ -168,7 +166,7 @@ body {
       }
 
       &__meta {
-        font-size: 11px;
+        font-size: 12px;
         color: var(--text-secondary);
       }
 
@@ -194,7 +192,7 @@ body {
       }
 
       &__percent {
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 700;
         font-family: 'DM Mono', monospace;
       }
@@ -223,9 +221,8 @@ body {
       }
 
       &-title {
-        font-size: 16px;
+        font-size: 24px;
         font-weight: 600;
-        letter-spacing: -0.01em;
       }
 
       &-actions {
@@ -420,7 +417,6 @@ body {
       }
 
       &-label {
-        font-size: 12px;
         margin-left: 8px;
         font-family: var(--font-sans);
       }
